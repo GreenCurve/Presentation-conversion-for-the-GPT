@@ -49,10 +49,11 @@ def pdf_converter(pdf):
 
 
 presentation = Presentation("N_28_Explitsitnaya_pamyat.pptx")
-pdf = pdfplumber.open("Cooper_The voice of Anna Julia Cooper.pdf")
+pdf = pdfplumber.open("Class06-GradientDescent-New.pdf")
 
 # a = pptx_converter(presentation)
 a = pdf_converter(pdf)
 
-for each in a:
-    print(each)
+with open("report.txt", "w",encoding="utf-8") as my_file:
+    for each in a:
+        my_file.write(str(each) + '\n')
