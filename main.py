@@ -27,27 +27,32 @@ def pptx_converter(presentation):
 
     return slides_content
 
+
+
 def pdf_converter(pdf):
 
-    num_slides = len(pdf.pages)
-
+    page_text = []
     for page in pdf.pages:
         text = page.extract_text()
+        page_text.append(text)
         # Process images and non-text elements, as needed
 
-        slides_content = []
-    for slide_num, slide_content in enumerate(slides):
-        slides_content.append({
-            "slide_number": slide_num + 1,
-            "text": slide_text,
-            "images": images_list
+    pages_content = []
+    for page_num, page_content in enumerate(pdf.pages):
+        pages_content.append({
+            "slide_number": page_num + 1,
+            "text": page_text[page_num],
+            # "images": images_list
         })
+
+    return pages_content
 
 
 presentation = Presentation("N_28_Explitsitnaya_pamyat.pptx")
-pdf = pdfplumber.open("Class06-GradientDescent-New.pdf")
+pdf = pdfplumber.open("Cooper_The voice of Anna Julia Cooper.pdf")
 
-a = pptx_converter(presentation)
+# a = pptx_converter(presentation)
+a = pdf_converter(pdf)
 
 for each in a:
     print(each)
