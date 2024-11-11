@@ -30,34 +30,33 @@ def pptx_converter(presentation):
 
 
 def pdf_converter(pdf_file):
+    '''
+    Splice pdf file into list with entries corrseponding to the page number, all the text , paths to all images. 
+    Creates all the images in the Logs\
+    '''
 
-    pages_text = []
-    pages_images = []
+    pages_text = [] #will contain all the text
+    pages_images = [] #will contain all the image paths
 
-    for page_num in range(len(pdf_file)):
+    for page_num in range(len(pdf_file)): #iterate over every page
         page = pdf_file[page_num]
 
-        text = page.get_text("text")
-        pages_text.append(text)
-
-        image_list = page.get_images(full=True)
+        text = page.get_text("text") #get all text from page
+        pages_text.append(text)#write all text
 
 
-
-        for img_index, img in enumerate(image_list):
+        image_list = page.get_images(full=True)  #get all images from page
+        for img_index, img in enumerate(image_list):#iterate over all images on the page
             xref = img[0]
             base_image = pdf_file.extract_image(xref)
             image_bytes = base_image["image"]
 
             # Save the image to a file
             image_filename = f"page_{page_num + 1}_image_{img_index + 1}.png"
-            with open("Logs/" + image_filename, "wb") as img_file:
+            with open("Logs/" + image_filename, "wb") as img_file:#create image in the Logs/
                 img_file.write(image_bytes)
 
-            pages_images.append(image_filename)
-
-
-
+            pages_images.append(image_filename)#write image
 
 
     pages_content = []
