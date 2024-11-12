@@ -1,8 +1,9 @@
 from pptx import Presentation
 import pymupdf
 import io
+import os
 
-def pptx_converter(presentation):
+def pptx_converter(presentation,out_name,middle_folder):
     '''
     Splice pptx file into list with entries corrseponding to the page number, all the text , paths to all images. 
     Creates all the images in the Logs\
@@ -25,7 +26,7 @@ def pptx_converter(presentation):
                 image_bytes = image.blob
 
                 image_filename = f"slide_{slide_num}_image.jpg"
-                with open("Logs/" + image_filename, "wb") as img_file: #and create image in Logs/
+                with open(out_name +  "/" + middle_folder +  "/" + image_filename, "wb") as img_file: #and create image in Logs/
                     img_file.write(image_bytes)
                 images_in_page.append(image_filename) #and write image
 
@@ -46,7 +47,7 @@ def pptx_converter(presentation):
 
 
 
-def pdf_converter(pdf_file):
+def pdf_converter(pdf_file,out_name,middle_folder):
     '''
     Splice pdf file into list with entries corrseponding to the page number, all the text , paths to all images. 
     Creates all the images in the Logs\
@@ -72,7 +73,7 @@ def pdf_converter(pdf_file):
 
             # Save the image to a file
             image_filename = f"page_{page_num + 1}_image_{img_index + 1}.png"
-            with open("Logs/" + image_filename, "wb") as img_file:#create image in the Logs/
+            with open(out_name + "/" + middle_folder +  "/" + image_filename, "wb") as img_file:#create image in the Logs/
                 img_file.write(image_bytes)
             images_in_page.append(image_filename)
 
@@ -91,12 +92,49 @@ def pdf_converter(pdf_file):
     return pages_content
 
 
-presentation = Presentation("N_28_Explitsitnaya_pamyat.pptx")
-pdf = pymupdf.open("Class06-GradientDescent-New.pdf")
 
-a = pptx_converter(presentation)
-# a = pdf_converter(pdf)
+#create an input dir
+inp_name = 'INPUTS'
 
-with open("Logs/report.txt", "w",encoding="utf-8") as my_file:
-    for each in a:
-        my_file.write(str(each) + '\n')
+if not os.path.exists(inp_name):
+    os.makedirs(inp_name)
+else:
+    print('Inp Dir alr exists')
+
+#create an output dir
+
+out_name = 'OUTPUTS'
+
+if not os.path.exists(out_name):
+    os.makedirs(out_name)
+else:
+    print('Out Dir alr exists')
+
+
+
+list_to_do = os.listdir(path=inp_name)
+
+
+for file in list_to_do:
+
+    dot = file.find('.')
+    middle_folder = file[:dot] + '_report'
+
+    if not os.path.exists(out_name + '/' + middle_folder):
+        os.makedirs('.' + '\\' + out_name + '\\' + middle_folder)
+    else:
+        print('middle report folder alr exists')
+
+
+    if '.pdf' in file:
+        pdf = pymupdf.open(inp_name + '/' + file)
+        a = pdf_converter(pdf,out_name,middle_folder)
+
+    if '.pptx' in file:
+        presentation = Presentation(inp_name + '/' + file)
+        a = pptx_converter(presentation,out_name,middle_folder)
+
+    with open(out_name + '/' + middle_folder + "/report.txt", "w",encoding="utf-8") as my_file:
+        for each in a:
+            my_file.write(str(each) + '\n')
+
