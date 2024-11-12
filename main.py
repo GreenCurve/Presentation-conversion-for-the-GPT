@@ -2,6 +2,9 @@ from pptx import Presentation
 import pymupdf
 import io
 import os
+import pytesseract
+from PIL import Image
+
 
 def pptx_converter(presentation,out_name,middle_folder):
     '''
@@ -72,9 +75,24 @@ def pdf_converter(pdf_file,out_name,middle_folder):
             image_bytes = base_image["image"]
 
             # Save the image to a file
+            folder_image_name = '.' + '\\' + out_name + '\\' + middle_folder + '\\' + f"page_{page_num + 1}_image_{img_index + 1}"
+
+            if not os.path.exists(folder_image_name):
+                os.makedirs(folder_image_name)
+            else:
+                print('image Dir alr exists')
+
             image_filename = f"page_{page_num + 1}_image_{img_index + 1}.png"
-            with open(out_name + "/" + middle_folder +  "/" + image_filename, "wb") as img_file:#create image in the Logs/
+            with open(out_name + "/" + middle_folder +  "/" + f"page_{page_num + 1}_image_{img_index + 1}" + "/" + image_filename, "wb") as img_file:#create image in the Logs/
                 img_file.write(image_bytes)
+
+            image_report_filename = f"page_{page_num + 1}_image_{img_index + 1}.txt"
+            with open(out_name + "/" + middle_folder +  "/" + f"page_{page_num + 1}_image_{img_index + 1}" + "/" + image_report_filename,"w",encoding="utf-8") as img_file_report:#create image in the Logs/
+                img = Image.open(out_name + "/" + middle_folder +  "/" + f"page_{page_num + 1}_image_{img_index + 1}" + "/" + image_filename)
+                text_from_image = pytesseract.image_to_string(img)
+                img_file_report.write(text_from_image)
+
+
             images_in_page.append(image_filename)
 
         
@@ -90,6 +108,10 @@ def pdf_converter(pdf_file,out_name,middle_folder):
         })
 
     return pages_content
+
+
+
+
 
 
 
