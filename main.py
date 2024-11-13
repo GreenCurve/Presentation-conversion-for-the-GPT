@@ -18,7 +18,7 @@ def folder_cr(folder_name,notice):
 def pptx_converter(presentation,out_name,middle_folder):
     '''
     Splice pptx file into list with entries corrseponding to the page number, all the text , paths to all images. 
-    Creates all the images in the Logs\
+    Creates all the images with reports for their text
     '''
 
 
@@ -83,7 +83,7 @@ def pptx_converter(presentation,out_name,middle_folder):
 def pdf_converter(pdf_file,out_name,middle_folder):
     '''
     Splice pdf file into list with entries corrseponding to the page number, all the text , paths to all images. 
-    Creates all the images in the Logs\
+    Creates all the images with reports for their text
     '''
 
     pages_text = [] #will contain all the text
@@ -121,7 +121,7 @@ def pdf_converter(pdf_file,out_name,middle_folder):
             image_report_filename = image_filename + ".txt"
             with open(out_name + "/" + middle_folder +  "/" + image_filename + "/" + image_report_filename,"w",encoding="utf-8") as img_file_report:
                 img = Image.open(image_filename_full)
-                text_from_image = pytesseract.image_to_string(img)
+                text_from_image = pytesseract.image_to_string(img, config="--oem 3 --psm 7")
                 img_file_report.write(text_from_image)
 
 
