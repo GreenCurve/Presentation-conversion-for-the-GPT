@@ -5,6 +5,15 @@ import os
 import pytesseract
 from PIL import Image
 
+def folder_cr(folder_name,notice):
+    '''
+    Tries to create a folder; outputs message on finding it already exists
+    '''
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+    else:
+        print(notice)
+
 
 def pptx_converter(presentation,out_name,middle_folder):
     '''
@@ -17,21 +26,42 @@ def pptx_converter(presentation,out_name,middle_folder):
     images_list = [] #will contain all the image paths
 
     for slide_num, slide in enumerate(presentation.slides, start=1): #iterate over the slides
+
         text = []
         images_in_page = []
-        for shape in slide.shapes: #for each element on slides
+
+        #iterate over all shapes in presentation
+        for shape_index, shape in enumerate(slide.shapes): #for each element on slides
 
             if shape.has_text_frame: # if text - get it and write
                 text.append(shape.text_frame.text)
 
             if shape.shape_type == 13:  # if image -  get it (13 corresponds to PICTURE type in pptx)
-                image = shape.image
+                image = shape.image 
                 image_bytes = image.blob
 
-                image_filename = f"slide_{slide_num}_image.jpg"
-                with open(out_name +  "/" + middle_folder +  "/" + image_filename, "wb") as img_file: #and create image in Logs/
+                #define all paths
+                image_filename = f"slide_{slide_num}_image_{shape_index}"
+                folder_shape_name = '.' + '\\' + out_name + '\\' + middle_folder + '\\' + image_filename
+                image_filename_full = out_name + "/" + middle_folder +  "/" + f"slide_{slide_num}_image_{shape_index}" + "/" + image_filename + ".png"
+
+
+                folder_cr(folder_shape_name,'Directory for that image already exists!')
+
+
+                with open(image_filename_full, "wb") as img_file:
                     img_file.write(image_bytes)
-                images_in_page.append(image_filename) #and write image
+
+
+                image_report_filename = image_filename + ".txt"
+                with open(out_name + "/" + middle_folder +  "/" + f"slide_{slide_num}_image_{shape_index}" + "/" + image_report_filename,"w",encoding="utf-8") as img_file_report:#create image in the Logs/
+                    img = Image.open(image_filename_full)
+
+                    # text_from_image = pytesseract.image_to_string(img)
+                    # img_file_report.write(text_from_image)
+
+
+                images_in_page.append(image_filename) #and write image filename
 
         images_list.append(images_in_page)
         slide_text.append(text)
@@ -69,34 +99,36 @@ def pdf_converter(pdf_file,out_name,middle_folder):
         image_list = page.get_images(full=True)  #get all images from page
 
         images_in_page = []
-        for img_index, img in enumerate(image_list):#iterate over all images on the page
+
+        #iterate over all images on the page
+        for img_index, img in enumerate(image_list):
             xref = img[0]
             base_image = pdf_file.extract_image(xref)
             image_bytes = base_image["image"]
 
-            # Save the image to a file
-            folder_image_name = '.' + '\\' + out_name + '\\' + middle_folder + '\\' + f"page_{page_num + 1}_image_{img_index + 1}"
+            # define paths
+            image_filename = f"page_{page_num}_image_{img_index}"
+            folder_image_name = '.' + '\\' + out_name + '\\' + middle_folder + '\\' + image_filename
+            image_filename_full = out_name + "/" + middle_folder +  "/" + image_filename + "/" + image_filename + ".png"
 
-            if not os.path.exists(folder_image_name):
-                os.makedirs(folder_image_name)
-            else:
-                print('image Dir alr exists')
 
-            image_filename = f"page_{page_num + 1}_image_{img_index + 1}.png"
-            with open(out_name + "/" + middle_folder +  "/" + f"page_{page_num + 1}_image_{img_index + 1}" + "/" + image_filename, "wb") as img_file:#create image in the Logs/
+            folder_cr(folder_image_name,'Directory for that image already exists!')
+
+
+            with open(image_filename_full, "wb") as img_file:
                 img_file.write(image_bytes)
 
-            image_report_filename = f"page_{page_num + 1}_image_{img_index + 1}.txt"
-            with open(out_name + "/" + middle_folder +  "/" + f"page_{page_num + 1}_image_{img_index + 1}" + "/" + image_report_filename,"w",encoding="utf-8") as img_file_report:#create image in the Logs/
-                img = Image.open(out_name + "/" + middle_folder +  "/" + f"page_{page_num + 1}_image_{img_index + 1}" + "/" + image_filename)
+            image_report_filename = image_filename + ".txt"
+            with open(out_name + "/" + middle_folder +  "/" + image_filename + "/" + image_report_filename,"w",encoding="utf-8") as img_file_report:
+                img = Image.open(image_filename_full)
                 text_from_image = pytesseract.image_to_string(img)
                 img_file_report.write(text_from_image)
 
 
             images_in_page.append(image_filename)
 
-        
-        pages_images.append(images_in_page)#write image
+        #write image
+        pages_images.append(images_in_page)
 
 
     pages_content = []
@@ -104,7 +136,7 @@ def pdf_converter(pdf_file,out_name,middle_folder):
         pages_content.append({
             "slide_number": page_num + 1,
             "text": pages_text[page_num],
-             "images": pages_images[page_num]
+            "images": pages_images[page_num]
         })
 
     return pages_content
@@ -117,20 +149,11 @@ def pdf_converter(pdf_file,out_name,middle_folder):
 
 #create an input dir
 inp_name = 'INPUTS'
-
-if not os.path.exists(inp_name):
-    os.makedirs(inp_name)
-else:
-    print('Inp Dir alr exists')
+folder_cr(inp_name,f' {inp_name} already exists!')
 
 #create an output dir
-
 out_name = 'OUTPUTS'
-
-if not os.path.exists(out_name):
-    os.makedirs(out_name)
-else:
-    print('Out Dir alr exists')
+folder_cr(out_name,f' {out_name} already exists!')
 
 
 
@@ -142,11 +165,7 @@ for file in list_to_do:
     dot = file.find('.')
     middle_folder = file[:dot] + '_report'
 
-    if not os.path.exists(out_name + '/' + middle_folder):
-        os.makedirs('.' + '\\' + out_name + '\\' + middle_folder)
-    else:
-        print('middle report folder alr exists')
-
+    folder_cr('.' + '\\' + out_name + '\\' + middle_folder,f'Report folder for the {file[:dot]} already exists!')
 
     if '.pdf' in file:
         pdf = pymupdf.open(inp_name + '/' + file)
